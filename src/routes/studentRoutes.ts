@@ -1,17 +1,19 @@
 import { Router, type Request, type Response } from "express";
 
 // import database
-import { students } from "../db/db.js";
+import { courses, students } from "../db/db.js";
 import {
+  zStudentId,
   zStudentDeleteBody,
   zStudentPostBody,
   zStudentPutBody,
-  zStudentId,
 } from "../schemas/studentValidator.js";
 import type { Student } from "../libs/types.js";
 
-const router = Router();
+const router: Router = Router();
 
+// GET /students
+// get students (by program)
 router.get("/", (req: Request, res: Response) => {
   try {
     const program = req.query.program;
@@ -39,13 +41,12 @@ router.get("/", (req: Request, res: Response) => {
   }
 });
 
-/// GET /:studentId
-
 router.get("/:studentId", (req: Request, res: Response) => {
   try {
-    const studentId = req.params.studentId;
+    const studentId = req.params.sutdentId;
+    const result = zStudentId.safeParse(studentId);
 
-    const result = zStudentId.safeParse(studentId); // check zod
+    // validate req.body with predefined validator
     if (!result.success) {
       return res.status(400).json({
         message: "Validation failed",
@@ -63,18 +64,72 @@ router.get("/:studentId", (req: Request, res: Response) => {
         success: false,
         message: "Student does not exists",
       });
-    }  
+    }
 
     // add response header 'Link'
     res.set("Link", `/students/${studentId}`);
 
-    return res.status(200).json({
+    return res.json({
       success: true,
-      message: "Here is your student",
+      message: `Student ${studentId} founded`,
       data: students[foundIndex],
     });
   } catch (err) {
-    return res.status(500).json({
+    return res.json({
+      success: false,
+      message: "Somthing is wrong, please try again",
+      error: err,
+    });
+  }
+});
+
+//get studentId courses
+router.get("/:studentId/courses", (req: Request, res: Response) => {
+  try {
+    const studentId = req.params.studentId;
+    const result = zStudentId.safeParse(studentId);
+
+    if (!result.success) {
+      return res.status(400).json({
+        check: studentId,
+        message: "Validation failed",
+        errors: result.error.issues[0]?.message,
+      });
+    }
+
+    //check duplicate studentId
+    const foundIndex = students.findIndex(
+      (student) => student.studentId === studentId
+    );
+
+    if (foundIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Student does not exists",
+      });
+    }
+
+    // add response header 'Link'
+    res.set("Link", `/api/v2/students/${studentId}/courses`);
+
+    const respondcourse = students[foundIndex]?.courses?.map((course) => {
+        const enrolledcourse = courses.find((e) => e.courseId == course);
+        return {
+            courseId: enrolledcourse?.courseId,
+            courseTitle: enrolledcourse?.courseTitle
+        }
+    })
+
+    return res.json({
+      success: true,
+      message: `Get courses detail of student ${studentId}`,
+      data: {
+        studentId: studentId,
+        courses: respondcourse
+      }
+    });
+  } catch (err) {
+    return res.json({
       success: false,
       message: "Somthing is wrong, please try again",
       error: err,
@@ -91,7 +146,7 @@ router.post("/", (req: Request, res: Response) => {
     // validate req.body with predefined validator
     const result = zStudentPostBody.safeParse(body); // check zod
     if (!result.success) {
-      return res.status(400).json({
+      return res.json({
         message: "Validation failed",
         errors: result.error.issues[0]?.message,
       });
@@ -121,7 +176,7 @@ router.post("/", (req: Request, res: Response) => {
     });
     // return res.json({ ok: true, message: "successfully" });
   } catch (err) {
-    return res.status(500).json({
+    return res.json({
       success: false,
       message: "Somthing is wrong, please try again",
       error: err,
@@ -138,7 +193,7 @@ router.put("/", (req: Request, res: Response) => {
     // validate req.body with predefined validator
     const result = zStudentPutBody.safeParse(body); // check zod
     if (!result.success) {
-      return res.status(400).json({
+      return res.json({
         message: "Validation failed",
         errors: result.error.issues[0]?.message,
       });
@@ -150,7 +205,7 @@ router.put("/", (req: Request, res: Response) => {
     );
 
     if (foundIndex === -1) {
-      return res.status(404).json({
+      return res.json({
         success: false,
         message: "Student does not exists",
       });
@@ -162,13 +217,13 @@ router.put("/", (req: Request, res: Response) => {
     // add response header 'Link'
     res.set("Link", `/students/${body.studentId}`);
 
-    return res.status(200).json({
+    return res.json({
       success: true,
       message: `Student ${body.studentId} has been updated successfully`,
       data: students[foundIndex],
     });
   } catch (err) {
-    return res.status(500).json({
+    return res.json({
       success: false,
       message: "Somthing is wrong, please try again",
       error: err,
@@ -183,7 +238,7 @@ router.delete("/", (req: Request, res: Response) => {
     const parseResult = zStudentDeleteBody.safeParse(body);
 
     if (!parseResult.success) {
-      return res.status(400).json({
+      return res.json({
         success: false,
         message: "Validation failed",
         error: parseResult.error.issues[0]?.message,
@@ -195,7 +250,7 @@ router.delete("/", (req: Request, res: Response) => {
     );
 
     if (foundIndex === -1) {
-      return res.status(404).json({
+      return res.json({
         success: false,
         message: "Student does not exists",
       });
@@ -204,12 +259,12 @@ router.delete("/", (req: Request, res: Response) => {
     // delete found student from array
     students.splice(foundIndex, 1);
 
-    return res.status(200).json({
+    res.json({
       success: true,
       message: `Student ${body.studentId} has been deleted successfully`,
     });
   } catch (err) {
-    return res.status(500).json({
+    return res.json({
       success: false,
       message: "Somthing is wrong, please try again",
       error: err,
@@ -217,4 +272,4 @@ router.delete("/", (req: Request, res: Response) => {
   }
 });
 
-export default router
+export default router;
