@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { zStudentId } from "../schemas/studentValidator.js";
 import { students, courses } from "../db/db.js";
+import { zStudentId } from "../schemas/studentValidator.js";
 const router = Router();
 
 router.get("/:studentId/courses", (req: Request, res: Response) => {
@@ -14,7 +14,6 @@ router.get("/:studentId/courses", (req: Request, res: Response) => {
                 courseTitle: course.courseTitle
             }))
         };
-
         if(!studentIdParseResult.success) {
             return res.status(400).json({
                 message: "Validation failed",
@@ -29,7 +28,7 @@ router.get("/:studentId/courses", (req: Request, res: Response) => {
         if (foundIndex === -1) {
             return res.status(404).json({
                 success: false,
-                message: "Student does not exists",
+                message: "Student Id does not exists",
             });
         }
 

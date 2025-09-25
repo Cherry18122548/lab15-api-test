@@ -1,7 +1,8 @@
 import { Router, type Request, type Response } from "express";
-import { courses } from "../db/db.js";
 import { zCourseId, zCoursePutBody, zCourseDeleteBody } from "../schemas/courseValidator.js";
 import { type Course } from "../libs/types.js";
+import { courses } from "../db/db.js";
+
 const router: Router = Router();
 
 // READ all
@@ -20,8 +21,6 @@ router.get("/", (req: Request, res: Response) => {
         });
     }
 });
-
-
 // Params URL 
 router.get("/:courseId", (req: Request, res: Response) => {
     try {
@@ -58,8 +57,6 @@ router.get("/:courseId", (req: Request, res: Response) => {
         });
     }
 });
-
-
 router.post("/", (req: Request, res: Response) => {
     try {
         const body = req.body as Course;
@@ -107,6 +104,7 @@ router.put("/", (req: Request, res: Response) => {
         const result = zCoursePutBody.safeParse(body);
         if (!result.success) {
             return res.status(400).json({
+                "success": false,
                 message: "Validation failed",
                 error: "Number must be exactly 6 digits",
             });
@@ -119,7 +117,7 @@ router.put("/", (req: Request, res: Response) => {
         if (foundIndex === -1) {
             return res.status(404).json({
                 success: false,
-                message: "Course does not exist",
+                message: "Course Id does not exist",
             });
         }
 
@@ -140,41 +138,44 @@ router.put("/", (req: Request, res: Response) => {
 });
 
 router.delete("/",(req: Request, res: Response) => {
-    try {
-        const body = req.body;
-        const parseResult = zCourseDeleteBody.safeParse(body);
-
-        if(!parseResult.success){
-            return res.status(400).json({
-                success: false,
-                message: "Validation failed",
-                error: "Number must be exactly 6 digits",
-            });
-        }
-        const foundIndex = courses.findIndex(
-            (course) => course.courseId === body.courseId
-        );
-
-        if (foundIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                message: "Course does not exist",
-            });
-        }
-
-        res.json({
-            success: true,
-            message: `Course ${body.courseId} has been deleted successfully`,
-            data: courses[foundIndex],
-        });
-        courses.splice(foundIndex, 1);
-    }catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Something went wrong, please try again",
-            error: err,
-        });
+        try {
+    const body = req.body;
+    const parseResult = zCourseDeleteBody.safeParse(body);
+    
+    if (!parseResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        error: parseResult.error.issues[0]?.message,
+      });
     }
+
+    const foundIndex = courses.findIndex(
+      (course: Course) => course.courseId === body.courseId
+    );
+
+    if (foundIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Course Id does not exists",
+      });
+    }
+
+    // delete found student from array
+    courses.splice(foundIndex, 1);
+
+    res.json({
+      success: true,
+      message: `Course ${body.courseId} has been deleted successfully`,
+      data: courses
+    });
+  } catch (err) {
+    return res.json({
+      success: false,
+      message: "Somthing is wrong, please try again",
+      error: err,
+    });
+  }
 });
 
 export default router;
