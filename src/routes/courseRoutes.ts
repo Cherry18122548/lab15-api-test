@@ -110,7 +110,6 @@ router.put("/", (req: Request, res: Response) => {
         const result = zCoursePutBody.safeParse(body);
         if (!result.success) {
             return res.status(400).json({
-                success: false,
                 message: "Validation failed",
                 error: "Number must be exactly 6 digits",
             });
