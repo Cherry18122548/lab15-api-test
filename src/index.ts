@@ -18,7 +18,7 @@ app.get("/",(req: Request, res: Response) => {
 });
 
 app.get("/me",(req: Request, res: Response) => {
-    return res.status(200).json({
+  return res.status(200).json({
 	success : true,
 	message : "Student Information",
 	data : {
