@@ -29,12 +29,10 @@ router.get("/:courseId", (req: Request, res: Response) => {
         const courseIdResult = zCourseId.safeParse(Number(courseId));
         if(!courseIdResult.success){
             return res.status(400).json({
-                success: false,
                 message: "Validation failed",
                 error: "Invalid input: expexcted number, received NaN",
             });
         }
-
         const foundIndex = courses.findIndex(
             (course) => course.courseId === Number(courseId)
         );
@@ -68,7 +66,6 @@ router.post("/", (req: Request, res: Response) => {
         const result = zCoursePutBody.safeParse(body);
         if (!result.success) {
             return res.status(400).json({
-                success: false,
                 message: "Validation failed",
                 error: "Number must be exactly 6 digits",
             });
@@ -81,7 +78,7 @@ router.post("/", (req: Request, res: Response) => {
         if(found) {
             return res.status(409).json({
                 success: false,
-                error: "Course ID already exists",
+                error: "Course Id already exists",
             });
         }
 
