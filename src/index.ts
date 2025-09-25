@@ -1,7 +1,7 @@
-import express from "express";
+import express, { type Request, type Response} from "express";
 import morgan from 'morgan';
-import type { Request, Response } from "express";
-import router from "./routes/courseRoutes.js";
+import studentRouter from "./routes/studentRoutes.js";
+import courseRouter from "./routes/courseRoutes.js";
 
 const app: any = express();
 
@@ -9,30 +9,39 @@ const app: any = express();
 app.use(express.json());
 app.use(morgan('dev'));
 
-
-app.get("/",(req: Request, res: Response) => {
+app.get("/", (req: Request, res: Response) => {
     return res.status(200).json({
-	success: true,
-	message: "lab 15 API service successfully"
-});
-});
-
-app.get("/me",(req: Request, res: Response) => {
-  return res.status(200).json({
-	success : true,
-	message : "Student Information",
-	data : {
-		studentId : "670610737",
-		firstName : "Woranat",
-		lastName : "Thammawit",
-		program : "CPE",
-		section : "801"
-        }
+        success: true,
+        message: "lab 15 API service successfully",
     });
 });
 
-app.use("/api/v2", router);
+app.get("/me",(req: Request, res: Response) => {
+    try {
+        const me = {
+            studentId: "670612130",
+            firstName: "Woranat",
+            lastName: "Thammawit",
+            program: "CPE",
+            section: "801",
+        }
 
+        return res.status(200).json({
+            success: true,
+            data: me,
+
+        });
+    } catch (err) {
+        return res.status(500).json ({
+            success: false,
+            massage: "Something is wrong, please try again",
+            error: err,
+        });
+    }
+});
+
+app.use("/api/v2/students", studentRouter);
+app.use("/api/v2/courses", courseRouter);
 
 app.listen(3000, () =>
   console.log("🚀 Server running on http://localhost:3000")
