@@ -138,10 +138,10 @@ router.put("/", (req: Request, res: Response) => {
 });
 
 router.delete("/",(req: Request, res: Response) => {
-        try {
+    try {
     const body = req.body;
     const parseResult = zCourseDeleteBody.safeParse(body);
-    
+
     if (!parseResult.success) {
       return res.status(400).json({
         success: false,
@@ -151,7 +151,7 @@ router.delete("/",(req: Request, res: Response) => {
     }
 
     const foundIndex = courses.findIndex(
-      (course: Course) => course.courseId === body.courseId
+      (cc: Course) => cc.courseId === body.courseId
     );
 
     if (foundIndex === -1) {
@@ -161,18 +161,21 @@ router.delete("/",(req: Request, res: Response) => {
       });
     }
 
-    // delete found student from array
+    // clone object 
+    const deletedCourse = { ...courses[foundIndex] };
+
+    // ลบออกจาก array
     courses.splice(foundIndex, 1);
 
-    res.json({
+    return res.status(200).json({
       success: true,
       message: `Course ${body.courseId} has been deleted successfully`,
-      data: courses
+      data: deletedCourse,
     });
   } catch (err) {
-    return res.json({
+    return res.status(500).json({
       success: false,
-      message: "Somthing is wrong, please try again",
+      message: "Something is wrong, please try again",
       error: err,
     });
   }
