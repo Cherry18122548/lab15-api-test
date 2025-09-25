@@ -17,7 +17,6 @@ router.get("/:studentId/courses", (req: Request, res: Response) => {
 
         if(!studentIdParseResult.success) {
             return res.status(400).json({
-                success: false,
                 message: "Validation failed",
                 error: "Student Id must contain 9 characters",
             });
