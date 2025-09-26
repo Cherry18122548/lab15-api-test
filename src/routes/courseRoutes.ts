@@ -1,23 +1,22 @@
 import { Router, type Request, type Response } from "express";
-import { students,courses} from "../db/db.js";
-import { zStudentId } from "../schemas/studentValidator.js";
 import { zCourseId,zCoursePostBody,zCoursePutBody,zCourseDeleteBody } from "../schemas/courseValidator.js";
 import type { Course } from "../libs/types.js";
+import { students,courses} from "../db/db.js";
+import { zStudentId } from "../schemas/studentValidator.js";
 const router: Router = Router();
 
 // READ all
+// GET /courses
 router.get("/students/:studentId/courses", (req: Request, res: Response) => {
   try {
     const studentId = req.params.studentId;
-
-    const result = zStudentId.safeParse(studentId); // check zod
+    const result = zStudentId.safeParse(studentId);
     if (!result.success) {
       return res.status(400).json({
         message: "Validation failed",
         errors: result.error.issues[0]?.message,
       });
     }
-
     //check duplicate studentId
     const student = students.find((s) => s.studentId === studentId);
 
@@ -29,9 +28,7 @@ router.get("/students/:studentId/courses", (req: Request, res: Response) => {
     }
     // add response header 'Link'
     res.set("Link", `/students/${studentId}/courses`);
-
     const courseIds = student.courses || [];
-
     const enrolledCourses = courseIds
       .map((id) => {
         const c = courses.find((cc) => cc.courseId === id);
@@ -60,11 +57,11 @@ router.get("/students/:studentId/courses", (req: Request, res: Response) => {
 });
 
 // Params URL
+//GET /courses/courseId
 router.get("/courses/:courseId", (req: Request, res: Response) => {
   try {
     const { courseId } = req.params;
     const cId = Number(courseId);
-
     const result = zCourseId.safeParse(cId); // check zod
     if (!result.success) {
       return res.status(400).json({
@@ -72,9 +69,7 @@ router.get("/courses/:courseId", (req: Request, res: Response) => {
         errors: result.error.issues[0]?.message,
       });
     }
-
     const course = courses.find((c) => c.courseId === cId);
-
     if (!course) {
       return res.status(404).json({
         success: false,
@@ -89,7 +84,6 @@ router.get("/courses/:courseId", (req: Request, res: Response) => {
       message: `Get course ${courseId} successfully`,
       data: course
     });
-
   } catch (err) {
     return res.status(500).json({
       success: false,
@@ -98,7 +92,7 @@ router.get("/courses/:courseId", (req: Request, res: Response) => {
     });
   }
 });
-
+// POST /courses
 router.post("/courses", (req: Request, res: Response) => {
   try {
     const body = req.body as Course;
@@ -122,8 +116,6 @@ router.post("/courses", (req: Request, res: Response) => {
         message: "Course Id is already exists",
       });
     }
-
-    // add new
     const new_course = body;
     courses.push(new_course);
 
@@ -144,7 +136,7 @@ router.post("/courses", (req: Request, res: Response) => {
     });
   }
 });
-
+// PUT /courses
 router.put("/courses", (req: Request, res: Response) => {
   try {
     const body = req.body as Course;
@@ -189,7 +181,7 @@ router.put("/courses", (req: Request, res: Response) => {
     });
   }
 });
-
+// DELETE /courses, body = {courseId}
 router.delete("/courses", (req: Request, res: Response) => {
   try {
     const body = req.body;
@@ -206,7 +198,7 @@ router.delete("/courses", (req: Request, res: Response) => {
     const foundIndex = courses.findIndex(
       (cc: Course) => cc.courseId === body.courseId
     );
-
+    
     const dd = courses[foundIndex];
 
     if (foundIndex === -1) {
@@ -232,5 +224,4 @@ router.delete("/courses", (req: Request, res: Response) => {
     });
   }
 });
-
 export default router;

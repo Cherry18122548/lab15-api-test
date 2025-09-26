@@ -1,22 +1,14 @@
 
 import { Router, type Request, type Response } from "express";
-
-// import database
 import { students } from "../db/db.js";
-import {
-  zStudentDeleteBody,
-  zStudentPostBody,
-  zStudentPutBody,
-  zStudentId,
-} from "../schemas/studentValidator.js";
 import type { Student } from "../libs/types.js";
+import {zStudentDeleteBody,zStudentPostBody,zStudentPutBody,zStudentId} from "../schemas/studentValidator.js";
 
 const router = Router();
 
 router.get("/students", (req: Request, res: Response) => {
   try {
     const program = req.query.program;
-
     if (program) {
       let filtered_students = students.filter(
         (student) => student.program === program
