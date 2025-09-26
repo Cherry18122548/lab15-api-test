@@ -48,4 +48,5 @@ router.get("/:studentId/courses", (req: Request, res: Response) => {
     }
 });
 
+
 export default router;
