@@ -1,3 +1,4 @@
+
 import { Router, type Request, type Response } from "express";
 
 // import database
@@ -217,4 +218,4 @@ router.delete("/students", (req: Request, res: Response) => {
   }
 });
 
-export default router;
+export default router
